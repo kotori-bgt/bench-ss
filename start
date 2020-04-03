@@ -1,0 +1,26 @@
+#!/bin/sh
+ 
+# Copyright (c) 2019 SiYu Wu <wu.siyu@hotmail.com>
+# simple shadowsocks benchmark script
+# Usage: ./start <encrypt_method>
+
+if [ "$#" -ne 1 ]; then
+  echo "Usage: $0 <encrypt_method>" >&2
+  exit 1
+fi
+
+ss-server -s 0.0.0.0 -p 5050 -m $1 -k test &
+pid=$!
+echo "ss-server started, pid=$pid"
+
+ss-tunnel -s 127.0.0.1 -p 5050 -m $1 -k test -L 127.0.0.1:5201 -l 5051 &
+pid=$!
+echo "ss-tunnel started, pid=$pid"
+
+sleep 1
+
+iperf3 -s &
+
+iperf3 -c 127.0.0.1 -p 5051 -R >/dev/null 2>&1
+
+kill $pid &> /dev/null
