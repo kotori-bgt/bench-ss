@@ -1,0 +1,19 @@
+#!/bin/sh
+ 
+# Copyright (c) 2019 SiYu Wu <wu.siyu@hotmail.com>
+# simple shadowsocks benchmark script
+# Usage: ./c-tls <encrypt_method>
+
+if [ "$#" -ne 1 ]; then
+  echo "Usage: $0 <encrypt_method>" >&2
+  exit 1
+fi
+
+ss-tunnel -s 127.0.0.1 -p 5050 -m $1 -k test --plugin obfs-local --plugin-opts "obfs=tls;obfs-host=wns.windows.com" -L 127.0.0.1:5201 -l 5051 &
+pid=$!
+echo "ss-tunnel started, pid=$pid"
+ 
+sleep 1
+iperf3 -c 127.0.0.1 -p 5051 -R
+ 
+kill $pid &> /dev/null
